@@ -14,7 +14,7 @@ Login to your linux server and run this command.
 #!/bin/bash yum update -y yum install -y httpd service httpd start
 ```
 
-Create a couple test pages and script to hit the web server to generate logs continuously.
+##### Create a couple test pages and script to hit the web server to generate logs continuously.
 1.	mkdir /var/www/html/adminer; cd /var/www/html/adminer
 2.	vi landing.txt and add below text, save and quit.
 This is landing page
@@ -40,13 +40,17 @@ done
 ```
 
 5.	Run the command below so the webpage gets hit continuously and the web log is updated.
-` nohup ./pagehit.sh > /dev/null 2>&1 & `
+```
+nohup ./pagehit.sh > /dev/null 2>&1 & 
+```
 
 
 #### Setup LogStash on WebServer:
 1.	Use this link for yum install or this link for other install options.
 2.	For RHEL6/Centos, use this command. If your OS is different, use this link.
-``` sudo initctl start logstash ```
+``` 
+sudo initctl start logstash 
+```
 	
 
 ## Demo Architecture: 
@@ -85,12 +89,14 @@ A Logstash pipeline has two required elements, input and output, and one optiona
 Lets use the steps below to create a pipeline to stream web server logs. Lets assume for this demo, you want to send existing contents of the apache access_log file and the new entries in the log file to elastic search . 
 
 
-1.	##### Filebeat setup:
+1.	Lets setup filebeat
+##### Filebeat setup:
 	a.Use this link to download the zip file to your server and complete the install steps.
 	b.In your filebeat.yml file, make following changes
 •	Under “Filebeat inputs” section, under “paths:” update the apache log file path as /etc/httpd/logs/access_log
 •	Comment the lines under “Elasticsearch template setting”, “Kibana”, “Elasticsearch output”
 •	Uncomment following lines from “Logstash output”
+
 ##### output.logstash:
 ``` 
 # The Logstash hosts
@@ -100,11 +106,14 @@ Lets use the steps below to create a pipeline to stream web server logs. Lets as
   enabled: true"
   ```
 c.	Now start the filebeat agent using command below. It will start running in background until next OS reboot.
+```
 nohup sudo ./filebeat -e -c filebeat.yml run > /dev/null 2>&1 &
+```
 
 2.	Next, lets start by creating logstash input/output configuration file. Inputs are Logstash plugins responsible for ingesting data. Output is the destination to send the log data to. (In this section, we will write output to standard out on your screen so it is easy to troubleshoot which we will later change to ElasticSearch when we get to the section named store.) Filter is the section that helps with transformations/aggregations and is optional. 
 
 ##### accesslog-Ingest-pipeline.json
+
 	 ```
 	 input {
    	        beats {
@@ -121,25 +130,34 @@ nohup sudo ./filebeat -e -c filebeat.yml run > /dev/null 2>&1 &
 	      }
 	     output {
     	         stdout { codec => rubydebug }
-	} 
+        } 
+    
+```
 ```
 a. Lets test the configs before starting
+```
 sudo /usr/share/logstash/bin/logstash -f /workspace/code/elasticsearch/aas/accesslog-ingest-pipeline.json --config.test_and_exit --path.settings /etc/logstash 
+```
 
 b. Now lets run logstash pipeline
-sudo /usr/share/logstash/bin/logstash -f /workspace/code/elasticsearch/aas/accesslog-ingest-pipeline.json --config.reload.automatic --path.settings /etc/logstash
+```
+sudo /usr/share/logstash/bin/logstash -f /workspace/code/elasticsearch/aas/accesslog-ingest-pipeline.json --config.reload.automatic --path.settings /etc/logstash 
+```
 
 You will see this message if everything went well.
+```
 [2020-04-12T22:36:29,718][INFO ][org.logstash.beats.Server][main] Starting server on port:  5044
 [2020-04-12T22:36:31,127][INFO ][logstash.agent           ] Successfully started Logstash API endpoint {:port=>9600}
 
-#### Note:
+```
+
+##### Note:
 The --config.reload.automatic option enables automatic config reloading so that you don’t have to stop and restart Logstash every time you modify the configuration file.
 
 c. Notice the filter section in the access-log-input-pipeline.json file. The grok filter plugin enables you to parse the unstructured log data into something structured and queryable. More information here on grok filter.
 		
 
-Store
+## Store
 In this section, we will store the logstash filtered/transformed data to Amazon ElasticSearch. Lets create an Amazon ElasticSearch cluster in your account and use steps in this link to create your ES domain which will act as an output.
 
 1. Once your elastic search domain is up, you should see the domain status as Active
@@ -147,8 +165,9 @@ In this section, we will store the logstash filtered/transformed data to Amazon 
 
 2. Edit the pipeline config json file and replace the “output” section with below changing the “localhost” to your elastic cluster endpoint seein above screenshot. 
 
-**** vi accesslog-Ingest-pipeline.json ****
+##### vi accesslog-Ingest-pipeline.json
 
+```
 output {
     elasticsearch {
         hosts => [ "https://search-aasdomaines-pc6d4ktvcslatanxe3nj5xsmsi.us-east-1.es.amazonaws.com:443"]
@@ -158,9 +177,11 @@ output {
         ssl => true
     }
 }
+```
 
 3.	From your Elastic Search domain page on AWS console, click on “ActionsModify access policy” from the drop down and add the json below replacing the IP address with the IP address of the server hosting Logstash instance.
 
+```
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -179,17 +200,26 @@ output {
     }
   ]
 }
+```
 
 4.	To verify if you are able to connect to logstash and view the log indexes from logstash along with rest of the indexes, run the command below from the logstash linux server.
 
+```
 curl -XGET -u userid:password 'https://search-aasdomaines-pc6d4ktvcslatanxe3nj5xsmsi.us-east-1.es.amazonaws.com/_cat/indices?v'
-
+```
 
 5.	Finally, lets query the logs to get all the log lines that has “404” dated on 04-13-2020.
+```
 curl -XGET -u master:Master@123 'https://search-aasdomaines-pc6d4ktvcslatanxe3nj5xsmsi.us-east-1.es.amazonaws.com/logstash-2020.04.13/_search?q=response:404'
+```
 
 6.	Similar to above query, find all the lines in log with exact match to response 404. 
+```
 curl -XGET --header 'Content-Type: application/json' -u master:Master@123 https://search-aasdomaines-pc6d4ktvcslatanxe3nj5xsmsi.us-east-1.es.amazonaws.com/logstash-2020.04.13/_search -d '{"query" : {"match" : { "response": "404" }}}' 
+```
 
-Look for the first line to read ho many lines were matched in the response. It looks something like this. 
+Look for the first line to read how many lines were matched in the response. It looks something like this. 
+```
 {"took":2,"timed_out":false,"_shards":{"total":1,"successful":1,"skipped":0,"failed":0},"hits":{"total":{"value":791,"relation":"eq"}
+
+```
