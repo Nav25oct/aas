@@ -56,14 +56,14 @@ done
 ## Collect
 This is the stage where data is collected from the sources where it originates. Some of the commonly used collection agents are Beats, fluentd and logstash. In several production deployments where beats is used, beats become the source of logstash as input.
 
-**** Why Beats as a source for Logstash input?****
+#### Why Beats as a source for Logstash input?
 Beats are lightweight data shippers that you install as agents on your servers to send specific types of operational data to Elasticsearch. Beats have a small footprint and use fewer system resources than Logstash. This makes it practical to deploy beats agents on several machines to capture data.
 Filebeat is one of the best log file shippers out there today — it’s lightweight, supports SSL and TLS encryption, supports back pressure with a good built-in recovery mechanism, and is extremely reliable
 
 Logstash has a larger footprint, but provides a broad array of input, filter, and output plugins for collecting, enriching, and transforming data from a variety of sources.
 Filebeat, and the other members of the Beats family, acts as a lightweight agent deployed on the edge host, pumping data into Logstash for aggregation, filtering and enrichment as seen in diagram below.
 
-#### Note
+##### Note
 In a typical use case, Filebeat runs on a separate machine from the machine running your Logstash instance. Many filebeat agents stream data to a single logstash machine. 
 
 
@@ -85,13 +85,13 @@ A Logstash pipeline has two required elements, input and output, and one optiona
 Lets use the steps below to create a pipeline to stream web server logs. Lets assume for this demo, you want to send existing contents of the apache access_log file and the new entries in the log file to elastic search . 
 
 
-1.	Filebeat setup:
-a.	Use this link to download the zip file to your server and complete the install steps.
-b.	In your filebeat.yml file, make following changes
+1.	##### Filebeat setup:
+	a.Use this link to download the zip file to your server and complete the install steps.
+	b.In your filebeat.yml file, make following changes
 •	Under “Filebeat inputs” section, under “paths:” update the apache log file path as /etc/httpd/logs/access_log
 •	Comment the lines under “Elasticsearch template setting”, “Kibana”, “Elasticsearch output”
 •	Uncomment following lines from “Logstash output”
-output.logstash:
+##### output.logstash:
 ``` 
 # The Logstash hosts
        hosts: ["localhost:5044"] 
@@ -102,29 +102,27 @@ output.logstash:
 c.	Now start the filebeat agent using command below. It will start running in background until next OS reboot.
 nohup sudo ./filebeat -e -c filebeat.yml run > /dev/null 2>&1 &
 
-2.	Next, lets start by creating logstash input/output configuration file. Inputs are Logstash plugins responsible for ingesting data. Output is the destination to send the log data to. (In this section, we will write output to standard out on your screen so it is easy to troubleshoot which we will later change to ElasticSearch when we get to the section named “store”.) Filter is the section that helps with transformations/aggregations and is optional. 
+2.	Next, lets start by creating logstash input/output configuration file. Inputs are Logstash plugins responsible for ingesting data. Output is the destination to send the log data to. (In this section, we will write output to standard out on your screen so it is easy to troubleshoot which we will later change to ElasticSearch when we get to the section named store.) Filter is the section that helps with transformations/aggregations and is optional. 
 
-#### accesslog-Ingest-pipeline.json 
+##### accesslog-Ingest-pipeline.json
 	 ```
 	 input {
    	        beats {
         		port => "5044"
     	         }
-}
-filter {
+		 }
+	filter {
     	     grok {
         		match => { "message" => "%{COMBINEDAPACHELOG}"}
     	     }
     	     geoip {
         		source => "clientip"
     	      }
-}
-output {
+	      }
+	     output {
     	         stdout { codec => rubydebug }
-} 
-
+	} 
 ```
-
 a. Lets test the configs before starting
 sudo /usr/share/logstash/bin/logstash -f /workspace/code/elasticsearch/aas/accesslog-ingest-pipeline.json --config.test_and_exit --path.settings /etc/logstash 
 
@@ -135,7 +133,8 @@ You will see this message if everything went well.
 [2020-04-12T22:36:29,718][INFO ][org.logstash.beats.Server][main] Starting server on port:  5044
 [2020-04-12T22:36:31,127][INFO ][logstash.agent           ] Successfully started Logstash API endpoint {:port=>9600}
 
-**** Note:**** The --config.reload.automatic option enables automatic config reloading so that you don’t have to stop and restart Logstash every time you modify the configuration file.
+#### Note:
+The --config.reload.automatic option enables automatic config reloading so that you don’t have to stop and restart Logstash every time you modify the configuration file.
 
 c. Notice the filter section in the access-log-input-pipeline.json file. The grok filter plugin enables you to parse the unstructured log data into something structured and queryable. More information here on grok filter.
 		
