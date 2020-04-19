@@ -1,4 +1,4 @@
-# Log Analytics Demo using Beats, Logstash, MSK & Amazon Elastic Search:
+# Log Analytics Demo using Beats, Logstash, MSK & Amazon Elastic Search
 
 
 ## Section 1 : Pre-reqs
