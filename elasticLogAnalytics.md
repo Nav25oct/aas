@@ -1,7 +1,7 @@
 # Log Analytics Demo using Beats, Logstash, MSK & Amazon Elastic Search:
 
 
-## Pre-reqs:
+## Section 1 : Pre-reqs
 1.	Setup Apache Web Server
 2.	Setup Logstash on Web server instance
 
@@ -53,11 +53,11 @@ sudo initctl start logstash
 ```
 	
 
-## Demo Architecture: 
+## Section 2 : Demo Architecture 
 
  
 
-## Collect
+## Section 3: Collect
 This is the stage where data is collected from the sources where it originates. Some of the commonly used collection agents are Beats, fluentd and logstash. In several production deployments where beats is used, beats become the source of logstash as input.
 
 #### Why Beats as a source for Logstash input?
@@ -157,7 +157,7 @@ The --config.reload.automatic option enables automatic config reloading so that 
 c. Notice the filter section in the access-log-input-pipeline.json file. The grok filter plugin enables you to parse the unstructured log data into something structured and queryable. More information here on grok filter.
 		
 
-## Store
+## Section 4: Store
 In this section, we will store the logstash filtered/transformed data to Amazon ElasticSearch. Lets create an Amazon ElasticSearch cluster in your account and use steps in this link to create your ES domain which will act as an output.
 
 1. Once your elastic search domain is up, you should see the domain status as Active
