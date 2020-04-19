@@ -55,7 +55,7 @@ sudo initctl start logstash
 
 ## Section 2 : Demo Architecture 
 
-![alt text] (https://github.com/tharsha18/aas/blob/master/demo-arch.jpg "Logo Title Text 1")
+![](https://github.com/tharsha18/aas/blob/master/demo-arch.jpg)
 
 ## Section 3: Collect
 This is the stage where data is collected from the sources where it originates. Some of the commonly used collection agents are Beats, fluentd and logstash. In several production deployments where beats is used, beats become the source of logstash as input.
