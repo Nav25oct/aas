@@ -10,7 +10,9 @@
 Login to your linux server and run this command.
 
 
-""" #!/bin/bash yum update -y yum install -y httpd service httpd start """
+```
+#!/bin/bash yum update -y yum install -y httpd service httpd start
+```
 
 Create a couple test pages and script to hit the web server to generate logs continuously.
 1.	mkdir /var/www/html/adminer; cd /var/www/html/adminer
@@ -21,6 +23,8 @@ user1
 user2
 4.	vi pagehit.sh and add below, save and quit.
 
+
+``` 
 #!/bin/bash
 while true
 do
@@ -32,16 +36,17 @@ curl http://localhost/adminer/users.txt
 sleep 15 
 curl http://localhost/adminer/failed.txta
 sleep 30
-done
+done 
+```
 
 5.	Run the command below so the webpage gets hit continuously and the web log is updated.
-nohup ./pagehit.sh > /dev/null 2>&1 &
+` nohup ./pagehit.sh > /dev/null 2>&1 & `
 
 
 #### Setup LogStash on WebServer:
 1.	Use this link for yum install or this link for other install options.
 2.	For RHEL6/Centos, use this command. If your OS is different, use this link.
-sudo initctl start logstash
+``` sudo initctl start logstash ```
 	
 
 ## Demo Architecture: 
@@ -58,7 +63,8 @@ Filebeat is one of the best log file shippers out there today — it’s lightwe
 Logstash has a larger footprint, but provides a broad array of input, filter, and output plugins for collecting, enriching, and transforming data from a variety of sources.
 Filebeat, and the other members of the Beats family, acts as a lightweight agent deployed on the edge host, pumping data into Logstash for aggregation, filtering and enrichment as seen in diagram below.
 
-**** Note:**** In a typical use case, Filebeat runs on a separate machine from the machine running your Logstash instance. Many filebeat agents stream data to a single logstash machine. 
+#### Note
+In a typical use case, Filebeat runs on a separate machine from the machine running your Logstash instance. Many filebeat agents stream data to a single logstash machine. 
 
 
   
@@ -66,7 +72,8 @@ Filebeat, and the other members of the Beats family, acts as a lightweight agent
 
 
 
-**** Logstash Pipeline:**** ALogstash pipeline has two required elements, input and output, and one optional element, filter. The input plugins consume data from a source, the filter plugins modify the data as you specify, and the output plugins write the data to a destination
+#### Logstash Pipeline
+A Logstash pipeline has two required elements, input and output, and one optional element, filter. The input plugins consume data from a source, the filter plugins modify the data as you specify, and the output plugins write the data to a destination
 
  
 
@@ -85,18 +92,21 @@ b.	In your filebeat.yml file, make following changes
 •	Comment the lines under “Elasticsearch template setting”, “Kibana”, “Elasticsearch output”
 •	Uncomment following lines from “Logstash output”
 output.logstash:
-"# The Logstash hosts
+``` 
+# The Logstash hosts
        hosts: ["localhost:5044"] 
- Change false to true in the following line.
- Change to true to enable this input configuration.
+ #Change false to true in the following line.
+ #Change to true to enable this input configuration.
   enabled: true"
+  ```
 c.	Now start the filebeat agent using command below. It will start running in background until next OS reboot.
 nohup sudo ./filebeat -e -c filebeat.yml run > /dev/null 2>&1 &
 
 2.	Next, lets start by creating logstash input/output configuration file. Inputs are Logstash plugins responsible for ingesting data. Output is the destination to send the log data to. (In this section, we will write output to standard out on your screen so it is easy to troubleshoot which we will later change to ElasticSearch when we get to the section named “store”.) Filter is the section that helps with transformations/aggregations and is optional. 
 
-**** accesslog-Ingest-pipeline.json ****
-	input {
+#### accesslog-Ingest-pipeline.json 
+	 ```
+	 input {
    	        beats {
         		port => "5044"
     	         }
@@ -111,7 +121,9 @@ filter {
 }
 output {
     	         stdout { codec => rubydebug }
-}
+} 
+
+```
 
 a. Lets test the configs before starting
 sudo /usr/share/logstash/bin/logstash -f /workspace/code/elasticsearch/aas/accesslog-ingest-pipeline.json --config.test_and_exit --path.settings /etc/logstash 
