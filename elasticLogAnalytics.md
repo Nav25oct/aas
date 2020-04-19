@@ -55,7 +55,7 @@ sudo initctl start logstash
 
 ## Section 2 : Demo Architecture 
 
- 
+![alt text] (https://github.com/tharsha18/aas/blob/master/demo-arch.jpg "Logo Title Text 1")
 
 ## Section 3: Collect
 This is the stage where data is collected from the sources where it originates. Some of the commonly used collection agents are Beats, fluentd and logstash. In several production deployments where beats is used, beats become the source of logstash as input.
@@ -78,12 +78,6 @@ In a typical use case, Filebeat runs on a separate machine from the machine runn
 
 #### Logstash Pipeline
 A Logstash pipeline has two required elements, input and output, and one optional element, filter. The input plugins consume data from a source, the filter plugins modify the data as you specify, and the output plugins write the data to a destination
-
- 
-
-
-
-
 
 
 Lets use the steps below to create a pipeline to stream web server logs. Lets assume for this demo, you want to send existing contents of the apache access_log file and the new entries in the log file to elastic search . 
