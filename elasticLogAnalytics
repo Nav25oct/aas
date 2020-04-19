@@ -9,7 +9,8 @@
 #### Setup Apache Web Server: 
 Login to your linux server and run this command.
 
- #!/bin/bash yum update -y yum install -y httpd service httpd start
+
+""" #!/bin/bash yum update -y yum install -y httpd service httpd start """
 
 Create a couple test pages and script to hit the web server to generate logs continuously.
 1.	mkdir /var/www/html/adminer; cd /var/www/html/adminer
